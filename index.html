@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Akilli Enerji Ureten Zemin - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Exo+2:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="ambient-grid"></div>
+    <div id="alarmOverlay" class="alarm-overlay hidden">
+      <div class="alarm-content">
+        <h1>YETKISIZ GIRIS TESPIT EDILDI</h1>
+        <p>Guvenlik modu aktif. Lutfen sistemi kontrol edin.</p>
+      </div>
+    </div>
+
+    <header class="topbar glass">
+      <div>
+        <p class="eyebrow">AKILLI ENERJI URETEN ZEMIN</p>
+        <h1>Endustriyel Kontrol Dashboard</h1>
+        <p class="topbar-subtitle">Baglanti adimlari: 1) WebSocket URL kontrol et 2) Baglan 3) Verileri izle veya WebSerial sec.</p>
+      </div>
+      <div class="connection-bar">
+        <input id="wsUrl" type="text" value="ws://127.0.0.1:8000/ws" aria-label="WebSocket URL" />
+        <button id="connectWsBtn" class="btn">WebSocket Baglan</button>
+        <button id="connectSerialBtn" class="btn btn-secondary">WebSerial Baglan</button>
+        <button id="disconnectBtn" class="btn btn-danger">Baglantiyi Kes</button>
+        <span id="connectionState" class="status-pill">Bagli Degil</span>
+      </div>
+      <div class="quick-help">
+        <span class="chip">Kaynak: <strong id="dataSource">Demo</strong></span>
+        <span class="chip">Son Guncelleme: <strong id="lastUpdate">-</strong></span>
+        <span class="chip">Ornek Sayisi: <strong id="sampleCount">0</strong></span>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="cards-row">
+        <article class="card metric-card">
+          <p class="card-title">Toplam Adim</p>
+          <div id="stepCounter" class="metric-value">000000</div>
+        </article>
+
+        <article class="card metric-card energy-card">
+          <p class="card-title">Birikimli Enerji</p>
+          <div class="energy-wrap">
+            <svg viewBox="0 0 120 120" class="energy-ring" aria-label="Enerji göstergesi">
+              <circle cx="60" cy="60" r="50" class="ring-bg"></circle>
+              <circle cx="60" cy="60" r="50" class="ring-progress" id="energyRing"></circle>
+            </svg>
+            <div class="energy-text">
+              <span id="energyValue">0</span>
+              <small>mJ</small>
+            </div>
+          </div>
+        </article>
+
+        <article class="card metric-card">
+          <p class="card-title">Anlik Voltaj</p>
+          <div class="voltage-panel">
+            <div id="voltageValue" class="metric-value">0.00 V</div>
+            <div class="voltage-scale">
+              <div id="voltageFill"></div>
+            </div>
+            <span class="scale-label">0V - 5V</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel-grid">
+        <article class="card chart-card">
+          <div class="card-head">
+            <h2>Canli Piezo Sinyali (Voltaj / Zaman)</h2>
+            <span id="sampleRate" class="chip">Ornek: 0 Hz</span>
+          </div>
+          <div class="chart-toolbar">
+            <div class="chart-stats">
+              <span class="chip">Anlik: <strong id="liveNow">0.00 V</strong></span>
+              <span class="chip">Min: <strong id="liveMin">0.00 V</strong></span>
+              <span class="chip">Max: <strong id="liveMax">0.00 V</strong></span>
+              <span class="chip">Ort: <strong id="liveAvg">0.00 V</strong></span>
+            </div>
+            <div class="chart-controls">
+              <label class="mini-toggle">
+                <input id="autoScaleToggle" type="checkbox" checked />
+                Otomatik Olcek
+              </label>
+              <button id="pauseChartBtn" class="btn btn-ghost">Akisi Duraklat</button>
+            </div>
+          </div>
+          <canvas id="liveChart"></canvas>
+        </article>
+
+        <article class="card security-card">
+          <div class="card-head">
+            <h2>Security Center</h2>
+            <span id="securityModeLabel" class="chip off">GMOD:0</span>
+          </div>
+          <p class="security-note">Durumu degistirmek Arduino'ya komut yollar: GMOD:1 / GMOD:0</p>
+          <div class="security-controls">
+            <label class="toggle-wrap">
+              <input id="securityToggle" type="checkbox" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Guvenlik Modu</span>
+            </label>
+            <div class="security-buttons">
+              <button id="securityOnBtn" class="btn btn-danger">Guvenligi Ac</button>
+              <button id="securityOffBtn" class="btn btn-ghost">Guvenligi Kapa</button>
+            </div>
+          </div>
+          <p id="commandLog" class="command-log">Son komut: -</p>
+        </article>
+      </section>
+
+      <section class="card data-card">
+        <div class="card-head">
+          <h2>Gecmis Veri Kayitlari</h2>
+          <div class="table-actions">
+            <button id="clearHistoryBtn" class="btn btn-ghost">Kayitlari Temizle</button>
+            <button id="downloadCsvBtn" class="btn">CSV Indir</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tarih/Saat</th>
+                <th>Adim</th>
+                <th>Voltaj (V)</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
