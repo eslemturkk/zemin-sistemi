@@ -361,6 +361,30 @@ h2 {
   user-select: none;
 }
 
+.security-status-badge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.14rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.security-status-badge.active {
+  color: #b7ffbd;
+  border-color: rgba(151, 248, 164, 0.55);
+  background: rgba(63, 130, 74, 0.24);
+  text-shadow: 0 0 8px rgba(151, 248, 164, 0.35);
+  animation: securityPulse 0.95s ease-in-out infinite;
+}
+
+.security-status-badge.passive {
+  color: #ffd0d0;
+  border-color: rgba(255, 59, 59, 0.45);
+  background: rgba(122, 30, 30, 0.22);
+}
+
 .security-controls {
   display: flex;
   flex-direction: column;
@@ -484,6 +508,18 @@ td {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes securityPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(151, 248, 164, 0.34);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(151, 248, 164, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(151, 248, 164, 0.34);
   }
 }
 

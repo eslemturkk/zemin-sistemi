@@ -26,6 +26,7 @@ const ui = {
   sampleRate: document.getElementById("sampleRate"),
   securityToggle: document.getElementById("securityToggle"),
   securityModeLabel: document.getElementById("securityModeLabel"),
+  securityStatusBadge: document.getElementById("securityStatusBadge"),
   securityOnBtn: document.getElementById("securityOnBtn"),
   securityOffBtn: document.getElementById("securityOffBtn"),
   commandLog: document.getElementById("commandLog"),
@@ -178,6 +179,9 @@ function updateUI() {
   ui.securityModeLabel.textContent = state.securityMode ? "GMOD:1" : "GMOD:0";
   ui.securityModeLabel.classList.toggle("off", !state.securityMode);
   ui.securityToggle.checked = state.securityMode;
+  ui.securityStatusBadge.textContent = state.securityMode ? "Aktif" : "Pasif";
+  ui.securityStatusBadge.classList.toggle("active", state.securityMode);
+  ui.securityStatusBadge.classList.toggle("passive", !state.securityMode);
   ui.sampleRate.textContent = `Ornek: ${state.sampleRate} Hz`;
   ui.sampleCount.textContent = String(state.sampleCount);
   ui.lastUpdate.textContent = state.lastUpdateLabel;
