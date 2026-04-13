@@ -139,9 +139,12 @@ class SerialBridge:
         # KV: steps:123;voltage:2.3;energy_mj:456;alarm:0
         kv_data = {}
         for part in line.split(";"):
-            if ":" not in part:
+            if ":" not in part and "=" not in part:
                 continue
-            k, v = part.split(":", 1)
+            if ":" in part:
+                k, v = part.split(":", 1)
+            else:
+                k, v = part.split("=", 1)
             kv_data[k.strip().lower()] = v.strip()
 
         if not kv_data:
@@ -167,11 +170,23 @@ class SerialBridge:
         security_val = data.get("security_mode", False)
         security = bool(security_val) if isinstance(security_val, (int, bool)) else str(security_val).lower() in ("1", "true", "yes", "on")
 
+        steps_val = data.get("steps", data.get("adim", 0))
+        voltage_val = data.get("voltage", data.get("mv", 0.0))
+        energy_val = data.get("energy_mj", data.get("energy", 0.0))
+
+        try:
+            voltage_num = float(voltage_val)
+        except (TypeError, ValueError):
+            voltage_num = 0.0
+
+        if "mv" in data and "voltage" not in data:
+            voltage_num = voltage_num / 1000.0
+
         return {
             "ts": datetime.now().isoformat(),
-            "steps": max(0, as_int(data.get("steps", 0))),
-            "voltage": max(0.0, min(5.0, as_float(data.get("voltage", 0.0)))),
-            "energy_mj": max(0.0, as_float(data.get("energy_mj", data.get("energy", 0.0)))),
+            "steps": max(0, as_int(steps_val)),
+            "voltage": max(0.0, min(5.0, voltage_num)),
+            "energy_mj": max(0.0, as_float(energy_val)),
             "alarm": alarm,
             "security_mode": security,
         }

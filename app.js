@@ -254,13 +254,14 @@ function normalizePayload(raw) {
       return JSON.parse(raw);
     } catch {
       const data = {};
-      raw.split(";").forEach((part) => {
-        const [key, value] = part.split(":");
+      raw.split(/[;,]/).forEach((part) => {
+        const [key, value] = part.split(/[:=]/);
         if (!key || value === undefined) return;
         const k = key.trim().toLowerCase();
         const v = value.trim();
-        if (k === "steps") data.steps = Number(v);
+        if (k === "steps" || k === "adim") data.steps = Number(v);
         if (k === "voltage") data.voltage = Number(v);
+        if (k === "mv") data.voltage = Number(v) / 1000;
         if (k === "energy_mj" || k === "energy") data.energy_mj = Number(v);
         if (k === "alarm") data.alarm = v === "1" || v.toLowerCase() === "true";
       });
